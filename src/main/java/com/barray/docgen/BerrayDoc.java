@@ -23,14 +23,18 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.TypeSolverBuild
 import com.github.javaparser.utils.SourceRoot;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class BerrayDoc {
 
   public static void main(String[] args) throws IOException {
-    SourceRoot sourceRoot = new SourceRoot(FileSystems.getDefault().getPath("./src/main/java"));
+    if (args.length != 1) {
+      System.out.println("Usage: BerrayDoc <path to berray source folder>");
+    }
+    SourceRoot sourceRoot = new SourceRoot(Path.of(args[0]));
     sourceRoot.getParserConfiguration().setSymbolResolver(
         new JavaSymbolSolver(
             new TypeSolverBuilder()
@@ -51,7 +55,10 @@ public class BerrayDoc {
             .forEach(classes::add);
       });
     }
-    System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(classes));
+    Path docPath = Path.of("./doc");
+    Files.createDirectories(docPath);
+    Files.writeString(docPath.resolve("doc.json"), new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(classes));
+
   }
 
   private static boolean isInterestedClass(ClassDocumentation c) {
